@@ -1,14 +1,9 @@
-use clap::Parser;
+#![allow(unused_variables)]
+mod args;
+use args::get_matches;
 
-
-#[derive(Parser)]
-struct Cli {
-    pattern: String,
-    path: std::path::PathBuf,
-}
 
 fn main() {
-    let args = Cli::parse();
-
-    println!("pattern: {:?}, path: {:?}", args.pattern, args.path)
+    let matches = get_matches().unwrap();
+    println!("{:?}", matches.value_source("t"));
 }
