@@ -1,10 +1,9 @@
-// ReSharper disable all CheckNamespace
 
-class Task
-{
-    public static void Main(string[] args)
-    {
-        // your code here
-        Console.WriteLine("Hello world");
-    }
-}
+## `ToDo:`
+
+---
+
+1. [x] Copy source dir tree into target dir.
+2. [x] Another
+
+---
