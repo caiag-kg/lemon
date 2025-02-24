@@ -1,48 +1,58 @@
 use std::error::Error;
 use clap::{Arg, ArgMatches, Command};
+use clap::parser::ValuesRef;
 use crate::models::CliArgs;
 
 
 impl CliArgs {
     pub fn new() -> Result<CliArgs, Box<dyn Error>> {
         let matches = Self::get_matches()?;
+        let include_dirs: Vec<String> = matches
+                .get_many::<String>("include_dirs")
+                .unwrap_or_default()
+                .cloned()
+                .collect();
+        let include_files: Vec<String> = matches
+                .get_many::<String>("include_files")
+                .unwrap_or_default()
+                .cloned()
+                .collect();
+        let exclude_dirs: Vec<String> = matches
+                .get_many::<String>("exclude_dirs")
+                .unwrap_or_default()
+                .cloned()
+                .collect();
+        let exclude_files: Vec<String> = matches
+                .get_many::<String>("exclude_files")
+                .unwrap_or_default()
+                .cloned()
+                .collect();
         Ok(
             CliArgs{
                 source: String::from(matches.get_one::<String>("source").unwrap()),
                 target: String::from(matches.get_one::<String>("target").unwrap()),
-                include_dirs: matches
-                    .get_many::<String>("include_dirs")
-                    .unwrap_or_default()
-                    .map(|s| s.to_string())
-                    .collect(),
-                include_files: matches
-                    .get_many::<String>("include_dirs")
-                    .unwrap_or_default()
-                    .map(|s| s.to_string())
-                    .collect(),
-                exclude_dirs: matches
-                    .get_many::<String>("include_dirs")
-                    .unwrap_or_default()
-                    .map(|s| s.to_string())
-                    .collect(),
-                exclude_files: matches
-                    .get_many::<String>("include_dirs")
-                    .unwrap_or_default()
-                    .map(|s| s.to_string())
-                    .collect(),
+                include_dirs,
+                include_files,
+                exclude_dirs,
+                exclude_files
             }
         )
     }
 
     pub fn has_target(&self) -> bool {
-        !self.target.is_empty()
+        !self.target.trim().is_empty()
     }
 
     pub fn has_exclude_include_dirs(&self) -> bool {
-        !self.exclude_dirs.is_empty() ||
-        !self.exclude_files.is_empty() ||
-        !self.include_dirs.is_empty() ||
-        !self.include_files.is_empty()
+        let mut ress: Vec<bool> = Vec::new();
+        for label_value in [&self.exclude_dirs, &self.exclude_files, &self.include_dirs, &self.include_files].iter() {
+            if label_value.len() == 1 && label_value[0].trim().is_empty() {
+                ress.push(false);
+            } else {
+                ress.push(true);
+            }
+        }
+        ress.iter().any(|&x| x)
     }
 
     pub fn get_matches() -> Result<ArgMatches, Box<dyn Error>> {
@@ -116,16 +126,46 @@ impl CliArgs {
 mod tests {
     use super::*;
     #[test]
-    fn test_has_exclude_include_dirs() {
-        todo!(" ");
-        let args = CliArgs{
+    fn test_has_exclude_include_dirs_with_true() {
+        let must_be_true = CliArgs{
             source: "Some".to_string(),
             target: "Another".to_string(),
             include_dirs: vec!["".to_string()],
             include_files: vec!["".to_string()],
-            exclude_dirs: vec!["d".to_string()],
+            exclude_dirs: vec!["some".to_string()],
             exclude_files: vec!["".to_string()],
         }.has_exclude_include_dirs();
-        assert!(args);
+    
+        assert!(must_be_true);
+    }
+
+    #[test]
+    fn test_has_exclude_include_dirs_with_false() {
+        let must_be_false = CliArgs{
+            source: "Some".to_string(),
+            target: "Another".to_string(),
+            include_dirs: vec!["".to_string()],
+            include_files: vec!["".to_string()],
+            exclude_dirs: vec!["".to_string()],
+            exclude_files: vec!["".to_string()],
+        }.has_exclude_include_dirs();
+
+        assert!(!must_be_false);
+    }
+
+    #[test]
+    fn test_cli_args() {
+        let cli_args = CliArgs{
+            source: "Some".to_string(),
+            target: "Another".to_string(),
+            include_dirs: vec!["".to_string()],
+            include_files: vec!["".to_string()],
+            exclude_dirs: vec!["a".to_string()],
+            exclude_files: vec!["".to_string()],
+        };
+        
+        assert_eq!(cli_args.source, String::from("Some"), "Error in source");
+        assert_eq!(cli_args.target, String::from("Another"), "Error in target");
+        assert_eq!(cli_args.exclude_dirs[0], String::from("a"), "Error in exclude dirs");
     }
 }
