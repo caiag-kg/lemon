@@ -9,3 +9,8 @@ pub struct CliArgs {
     pub exclude_dirs: Vec<String>,
     pub exclude_files: Vec<String>,
 }
+
+pub enum DirTypes {
+    Exclude,
+    Include,
+}

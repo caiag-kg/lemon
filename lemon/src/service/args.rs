@@ -1,7 +1,7 @@
 use std::error::Error;
 use clap::{Arg, ArgMatches, Command};
 use clap::parser::ValuesRef;
-use crate::models::CliArgs;
+use crate::models::{CliArgs, DirTypes};
 
 
 impl CliArgs {
@@ -42,10 +42,18 @@ impl CliArgs {
     pub fn has_target(&self) -> bool {
         !self.target.trim().is_empty()
     }
-
-    pub fn has_exclude_include_dirs(&self) -> bool {
+    
+    pub fn has_dirs_files(&self, dir_types: DirTypes) -> bool {
         let mut ress: Vec<bool> = Vec::new();
-        for label_value in [&self.exclude_dirs, &self.exclude_files, &self.include_dirs, &self.include_files].iter() {
+        let dirs_files = match dir_types {
+            DirTypes::Exclude => {
+                [&self.exclude_dirs, &self.exclude_files]
+            }
+            DirTypes::Include => {
+                [&self.include_dirs, &self.exclude_dirs]
+            }
+        };
+        for label_value in dirs_files.iter() {
             if label_value.len() == 1 && label_value[0].trim().is_empty() {
                 ress.push(false);
             } else {
@@ -134,7 +142,7 @@ mod tests {
             include_files: vec!["".to_string()],
             exclude_dirs: vec!["some".to_string()],
             exclude_files: vec!["".to_string()],
-        }.has_exclude_include_dirs();
+        }.has_dirs_files(DirTypes::Exclude);
     
         assert!(must_be_true);
     }
@@ -148,7 +156,7 @@ mod tests {
             include_files: vec!["".to_string()],
             exclude_dirs: vec!["".to_string()],
             exclude_files: vec!["".to_string()],
-        }.has_exclude_include_dirs();
+        }.has_dirs_files(DirTypes::Exclude);
 
         assert!(!must_be_false);
     }

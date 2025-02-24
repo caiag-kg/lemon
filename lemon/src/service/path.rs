@@ -82,14 +82,7 @@ impl DirPath for BasePath {
         include_files: Vec<String>,
         exclude_dirs: Vec<String>,
         exclude_files: Vec<String>,
-    ) -> Result<u64> {        
-        let mut delete = String::new();
-        println!("Do you want to delete? (y/n): {:#?}\n{:#?}", exclude_dirs, exclude_files);
-        stdout().flush()?;
-        stdin().read_line(&mut delete)?;
-        if delete.trim() == "y" {
-            println!("Deleted directory: {}", self.path);
-        }
+    ) -> Result<u64> {
         
         if let Some(entry) = WalkDir::new(&self.path).into_iter().filter_map(|e| e.ok()).next() {
             let entry_dirs = entry.path();
