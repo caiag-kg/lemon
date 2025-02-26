@@ -2,32 +2,38 @@
 mod models;
 mod service;
 
-use service::DirPath;
 use models::{BasePath, YesOrNo};
 use crate::models::{CliArgs, DirTypes};
 
 fn main() {
     println!("\n\t\t\"Lemon CLI\"");
     // Read args from console;
-    let args = CliArgs::new().unwrap();
-    
+    let mut args = CliArgs::new().unwrap();
+
     match args.has_target() {
         true => {
-            handle_copy(&args)
+            handle_copy(&mut args)
         }
         false => {
-            handle_delete(&args);
+            handle_delete(&mut args);
         }
-    }    
+    }
 }
 
 
-fn handle_delete(args: &CliArgs) {
-    println!("\nDelete!");
+fn handle_delete(args: &mut CliArgs) {
+    let dir_path = BasePath::new(args.source.clone(), false);
+    
+    // Check that additional args was entered or not: 
+    if args.has_add_args(DirTypes::Exclude) && args.has_add_args(DirTypes::Include) {
+        // Questionnaire: remove folder?
+        let question = format!("Do you want to remove the directory: {} ? ", dir_path.path);
+        let remove_dir = YesOrNo::ask(&question, true).unwrap();
+    }
 }
 
 
-fn handle_copy(args: &CliArgs) {
+fn handle_copy(args: &mut CliArgs) {
     // Check that source PATH is existed.
     let source_path = BasePath::new(args.source.clone(), false);
 
@@ -40,24 +46,25 @@ fn handle_copy(args: &CliArgs) {
 
     // Check that [include_files, include_dirs, exclude_dirs, exclude_files] are empty.
     // If empty then just coping.
-    if args.has_dirs_files(DirTypes::Exclude) {
+    if args.has_add_args(DirTypes::Exclude) {
         let question = format!(
             "Do you want to remove: \nFolders: {:?}\nFiles: {:?}",
             &args.exclude_dirs,
             &args.exclude_files
+            
         );
         todo!();
         println!("{}", question);
         return;
     }
     
-    if args.has_dirs_files(DirTypes::Include) {
+    if args.has_add_args(DirTypes::Include) {
         let question = format!(
             "Do you want to remove all except: \nFolders: {:?}\nFiles: {:?}",
             &args.include_dirs,
             &args.include_files
         );
-        todo!();
+        todo!("Do something else!");
         println!("{}", question);
         return;
     }

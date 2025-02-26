@@ -2,6 +2,7 @@ use std::error::Error;
 use clap::{Arg, ArgMatches, Command};
 use clap::parser::ValuesRef;
 use crate::models::{CliArgs, DirTypes};
+use crate::service::questionnaire;
 
 
 impl CliArgs {
@@ -37,30 +38,6 @@ impl CliArgs {
                 exclude_files
             }
         )
-    }
-
-    pub fn has_target(&self) -> bool {
-        !self.target.trim().is_empty()
-    }
-    
-    pub fn has_dirs_files(&self, dir_types: DirTypes) -> bool {
-        let mut ress: Vec<bool> = Vec::new();
-        let dirs_files = match dir_types {
-            DirTypes::Exclude => {
-                [&self.exclude_dirs, &self.exclude_files]
-            }
-            DirTypes::Include => {
-                [&self.include_dirs, &self.exclude_dirs]
-            }
-        };
-        for label_value in dirs_files.iter() {
-            if label_value.len() == 1 && label_value[0].trim().is_empty() {
-                ress.push(false);
-            } else {
-                ress.push(true);
-            }
-        }
-        ress.iter().any(|&x| x)
     }
 
     pub fn get_matches() -> Result<ArgMatches, Box<dyn Error>> {
@@ -129,6 +106,48 @@ impl CliArgs {
     }
 }
 
+impl CliArgs {
+    pub fn has_target(&self) -> bool {
+        !self.target.trim().is_empty()
+    }
+
+    pub fn has_add_args(&mut self, dir_types: DirTypes) -> bool {
+        let mut ress: Vec<bool> = Vec::new();
+        let dirs_files = match dir_types {
+            DirTypes::Exclude => {
+                [&self.exclude_dirs, &self.exclude_files]
+            }
+            DirTypes::Include => {
+                [&self.include_dirs, &self.exclude_dirs]
+            }
+        };
+        for label_value in dirs_files.iter() {
+            if label_value.len() == 1 && label_value[0].trim().is_empty() {
+                ress.push(false);
+            } else {
+                ress.push(true);
+            }
+        }
+        let has_add_args = ress.iter().any(|&x| x);
+        if has_add_args {
+            self.merge_x_includes();
+        }
+        
+        has_add_args
+    }
+
+    pub fn merge_x_includes(&mut self) {
+        for xf in self.exclude_files.iter() {
+            self.include_files.retain(
+                |x| {
+                    *x != *xf
+                }
+            )
+        }
+        todo!(" -> Here to do! ");
+    }
+}
+
 
 #[cfg(test)]
 mod tests {
@@ -142,7 +161,7 @@ mod tests {
             include_files: vec!["".to_string()],
             exclude_dirs: vec!["some".to_string()],
             exclude_files: vec!["".to_string()],
-        }.has_dirs_files(DirTypes::Exclude);
+        }.has_add_args(DirTypes::Exclude);
     
         assert!(must_be_true);
     }
@@ -156,7 +175,7 @@ mod tests {
             include_files: vec!["".to_string()],
             exclude_dirs: vec!["".to_string()],
             exclude_files: vec!["".to_string()],
-        }.has_dirs_files(DirTypes::Exclude);
+        }.has_add_args(DirTypes::Exclude);
 
         assert!(!must_be_false);
     }

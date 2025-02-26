@@ -1,6 +1,4 @@
 #![allow(unused_imports)]
 pub mod args;
-mod path;
+pub mod fs;
 mod questionnaire;
-
-pub use path::DirPath;
