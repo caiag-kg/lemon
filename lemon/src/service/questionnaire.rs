@@ -1,27 +1,18 @@
-use std::io::{stdin, stdout, Write, Error as IOError};
 use crate::models::YesOrNo;
-
+use std::io::{stdin, stdout, Error as IOError, Write};
 
 impl YesOrNo {
     pub fn ask(question: &str, clarify: bool) -> Result<bool, IOError> {
         // Function to get input result in Yes or No;
         match Self::re_ask(&format!("\n{question}"))? {
-            true => {
-                match clarify {
-                    true => {
-                        Self::re_ask(&format!("\n[CLARIFY] {question}"))
-                    }
-                    false => {
-                        Ok(true)
-                    }
-                }
-            }
-            false => {
-                Ok(false)
-            }
+            true => match clarify {
+                true => Self::re_ask(&format!("\n[CLARIFY] {question}")),
+                false => Ok(true),
+            },
+            false => Ok(false),
         }
     }
-    
+
     pub fn re_ask(question: &str) -> Result<bool, IOError> {
         let mut result = false;
         let mut input = String::new();
@@ -42,7 +33,7 @@ impl YesOrNo {
                     }
                     "n" | "no" | "" => {
                         reloop = false;
-                    },
+                    }
                     _ => {
                         input.clear();
                         println!("Invalid input");
@@ -56,15 +47,11 @@ impl YesOrNo {
 
         Ok(result)
     }
-    
+
     pub fn value_as_string(&self) -> Result<String, IOError> {
         match self {
-            YesOrNo::Yes => {
-                Ok("Yes".to_string())
-            }
-            YesOrNo::No => {
-                Ok("No".to_string())
-            }
+            YesOrNo::Yes => Ok("Yes".to_string()),
+            YesOrNo::No => Ok("No".to_string()),
         }
     }
 }

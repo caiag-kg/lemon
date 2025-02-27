@@ -1,5 +1,4 @@
-
 pub enum YesOrNo {
     Yes,
-    No
+    No,
 }
